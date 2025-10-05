@@ -1,10 +1,7 @@
 import pika
 
 from settings import get_connection
-
-def callback_fr(ch, method, properties, body):
-    print("+++++++France++++++++")
-
+from callbacks import *
 
 
 def main():

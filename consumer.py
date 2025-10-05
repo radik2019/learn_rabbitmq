@@ -1,9 +1,6 @@
 import pika
 from settings import get_connection
-
-def callback(ch, method, properties, body):
-    print(f"[{method.exchange}] ({method.routing_key}) -> {body.decode()} "
-          f"props: {properties.headers if properties.headers else ''}")
+from callbacks import *
 
 
 def main():
@@ -33,25 +30,24 @@ def main():
     channel.queue_bind(exchange="broadcast", queue="fanout_queue_2")
     channel.basic_consume(queue="fanout_queue_2", on_message_callback=callback, auto_ack=True)
 
-
-
     # --- 3. Topic exchange ---
     channel.exchange_declare(exchange="topic_logs", exchange_type="topic", durable=True)
 
     channel.queue_declare(queue="order_queue", durable=True)
-    # channel.queue_bind(exchange="topic_logs", queue="order_queue", routing_key="order.*")
     channel.queue_bind(exchange="topic_logs", queue="order_queue", routing_key="order.complete")
     channel.basic_consume(queue="order_queue", on_message_callback=callback, auto_ack=True)
 
-    channel.queue_declare(queue="shipped_queue", durable=True)
-    channel.queue_bind(exchange="topic_logs", queue="shipped_queue", routing_key="order.shipped.italy")
-    channel.basic_consume(queue="shipped_queue", on_message_callback=callback, auto_ack=True)
-
     channel.queue_declare(queue="all_shipped", durable=True)
     channel.queue_bind(exchange="topic_logs", queue="all_shipped", routing_key="order.shipped.#")
-    channel.basic_consume(queue="all_shipped", on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue="all_shipped", on_message_callback=callback_common, auto_ack=True)
     
+    channel.queue_declare(queue="shipped_queue_it", durable=True)
+    channel.queue_bind(exchange="topic_logs", queue="shipped_queue_it", routing_key="order.shipped.italy")
+    channel.basic_consume(queue="shipped_queue_it", on_message_callback=callback_it, auto_ack=True)
 
+    channel.queue_declare(queue="shipped_queuezz", durable=True)
+    channel.queue_bind(exchange="topic_logs", queue="shipped_queuezz", routing_key="order.shipped.france")
+    channel.basic_consume(queue="shipped_queuezz", on_message_callback=callback_fr, auto_ack=True)
 
     # --- 4. Headers exchange ---
     channel.exchange_declare(exchange="headers_logs", exchange_type="headers", durable=True)

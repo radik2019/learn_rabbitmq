@@ -1,10 +1,7 @@
 import pika
 
 from settings import get_connection
-
-def callback_fr(ch, method, properties, body):
-    print("+++++  Italy  ++++++")
-
+from callbacks import *
 
 
 def main():
@@ -15,7 +12,7 @@ def main():
     channel.queue_bind(exchange="topic_logs", queue="shipped_queue_it", routing_key="order.shipped.italy")
     channel.basic_consume(queue="shipped_queue_it", on_message_callback=callback_fr, auto_ack=True)
 
-    print(" [*] francia in attesa di messaggi")
+    print(" [*] italia in attesa di messaggi")
     channel.start_consuming()
 
 
